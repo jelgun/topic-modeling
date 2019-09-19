@@ -1,10 +1,10 @@
 """
-[-]Preprocessing:
+[+]Preprocessing:
     [+]1) Parse files
     [+]2) Tokenization
     [+]3) Remove stopwords, numbers, punctuation
-    [-]4) Lemmatization
-    [-]5) Stemming
+    [+]4) Lemmatization
+    [+]5) Stemming
 [+]Create BOW, remove the most and least frequent words, keep ~100k words
 [+]Apply LDA
 [-]Evaluate:
@@ -15,8 +15,10 @@ import json
 import nltk
 nltk.download('punkt')
 nltk.download('stopwords')
+nltk.download('wordnet')
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer, PorterStemmer
 from string import punctuation
 from gensim.corpora import Dictionary
 from gensim.models import LdaMulticore
@@ -40,13 +42,25 @@ def preprocess():
     for data in documents:
         tokenized_data.append(i.lower() for i in word_tokenize(data))
 
-    #remove stopwords, numbers and punctuation
+    #remove stopwords, numbers and punctuations
     stop_words = set(stopwords.words('english')) 
     filtered_data = []
     for data in tokenized_data:
         filtered_data.append([w for w in data if (w not in stop_words) and (not w.isdigit()) and (w not in punctuation)])
 
-    return filtered_data
+    #lemmatize
+    lemmatizer = WordNetLemmatizer()
+    lemm_data = []
+    for data in filtered_data:
+        lemm_data.append([lemmatizer.lemmatize(w) for w in data])
+    
+    #stem
+    ps = PorterStemmer()
+    stem_data = []
+    for data in lemm_data:
+        stem_data.append([ps.stem(w) for w in data])
+
+    return stem_data
 
 def create_bow(data):
     dct = Dictionary(data)

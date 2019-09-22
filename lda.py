@@ -80,7 +80,7 @@ data = preprocess()
 dct, bow = create_bow(data)
 lda_model = LdaMulticore(
     corpus=bow,
-    num_topics=2,
+    num_topics=55,
     id2word=dct,
     passes=5,
     workers=2)
@@ -99,3 +99,24 @@ coherence_model_lda = CoherenceModel(
 
 coherence = coherence_model_lda.get_coherence()
 print('\nCoherence Score: ', coherence)
+
+# tsne visualization
+X = np.zeros((len(bow), NUM_TOPICS))
+for i in range(len(bow)):
+    for (k, y) in lda_model[bow[i]]:
+        X[i][k] = y
+
+topic_num = np.argmax(X, axis=1)
+
+colors = np.random.rand(NUM_TOPICS)
+doc_colors = []
+for i in range(X.shape[0]):
+    doc_colors.append(colors[topic_num[i]])
+
+tsne_embedding = TSNE(
+    n_components=2,
+    random_state=0,
+    init='pca').fit_transform(X)
+
+plt.scatter(tsne_embedding[:, 0], tsne_embedding[:, 1], c=doc_colors)
+plt.show()

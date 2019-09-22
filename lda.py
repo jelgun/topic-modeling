@@ -7,9 +7,9 @@
     [+]5) Stemming
 [+]Create BOW, remove the most and least frequent words, keep ~100k words
 [+]Apply LDA
-[-]Evaluate:
+[+]Evaluate:
     [+]1) Topic Coherence Metric (CV)
-    [-]2) tSNE Visualization
+    [+]2) tSNE Visualization
 """
 import json
 import nltk

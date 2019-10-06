@@ -28,7 +28,7 @@ nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('wordnet')
 
-NUM_TOPICS = 2
+NUM_TOPICS = 30
 
 
 def parse(files):

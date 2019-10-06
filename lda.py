@@ -99,6 +99,18 @@ lda_model = LdaModel(
     id2word=dct)
 print("Lda is finished!")
 
+# Topic Coherence
+coherence_model_lda = CoherenceModel(
+    model=lda_model,
+    texts=train_data,
+    corpus=bow,
+    dictionary=dct,
+    coherence='c_v',
+    processes=1)
+
+coherence = coherence_model_lda.get_coherence()
+print('\nCoherence Score: ', coherence)
+
 """
 document_topics = [lda_model.get_document_topics(
     bow=doc_bow,
@@ -113,10 +125,11 @@ print("SVM is finished!")
 # Topic Coherence
 coherence_model_lda = CoherenceModel(
     model=lda_model,
-    texts=data,
+    texts=train_data,
     corpus=bow,
     dictionary=dct,
-    coherence='c_v')
+    coherence='c_v',
+    processes=1)
 
 coherence = coherence_model_lda.get_coherence()
 print('\nCoherence Score: ', coherence)

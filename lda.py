@@ -22,56 +22,62 @@ from gensim.corpora import Dictionary
 from gensim.models import LdaMulticore, LdaModel
 from gensim.models.coherencemodel import CoherenceModel
 from sklearn.manifold import TSNE
+from sklearn import svm
 import numpy as np
 from matplotlib import pyplot as plt
+
 nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('wordnet')
+stop_words = set(stopwords.words('english'))
+lemmatizer = WordNetLemmatizer()
+ps = PorterStemmer()
 
 NUM_TOPICS = 30
 
+label2id = {}
+label_id = 0
 
-def parse(files):
+
+def parse(file):
     documents = []
-    for file in files:
-        with open(file, encoding="utf8") as json_file:
-            data = json.load(json_file)
-            for i in data:
-                documents.append(i['text'])
-    return documents
+    labels = []
+    with open(file, encoding="utf8") as json_file:
+        data = json.load(json_file)
+        for i in data:
+            text = i['text']
+            for section in i['annotations']:
+                begin = section['begin']
+                end = begin + section['length']
+                label = section['sectionLabel']
+
+                if label not in label2id:
+                    global label_id
+                    label2id[label] = label_id
+                    label_id += 1
+
+                documents.append(preprocess(text[begin:end]))
+                labels.append(label2id[label])
+
+    return documents, labels
 
 
-def preprocess():
-    files = ['wikisection_dataset_json/wikisection_en_city_train.json']
-    documents = parse(files)
-
+def preprocess(data):
     # tokenize
-    tokenized_data = []
-    for data in documents:
-        tokenized_data.append(i.lower() for i in word_tokenize(data))
+    tokenized_data = [i.lower() for i in word_tokenize(data)]
 
     # remove stopwords, numbers and punctuations
-    stop_words = set(stopwords.words('english'))
-    filtered_data = []
-    for data in tokenized_data:
-        filtered_data.append([w for w in data
-                             if (w not in stop_words) and
-                             (not w.isdigit()) and
-                             (w not in punctuation)])
+    filtered_data = [w for w in tokenized_data
+                     if (w not in stop_words) and
+                     (not w.isdigit()) and
+                     (w not in punctuation)]
 
     # lemmatize
-    lemmatizer = WordNetLemmatizer()
-    lemm_data = []
-    for data in filtered_data:
-        lemm_data.append([lemmatizer.lemmatize(w) for w in data])
+    lemm_data = [lemmatizer.lemmatize(w) for w in filtered_data]
 
     # stem
-    ps = PorterStemmer()
-    stem_data = []
-    for data in lemm_data:
-        stem_data.append([ps.stem(w) for w in data])
+    stem_data = [ps.stem(w) for w in lemm_data]
 
-    print('Preprocessing is finished')
     return stem_data
 
 
@@ -82,20 +88,28 @@ def create_bow(data):
     return dct, bow
 
 
-data = preprocess()
-dct, bow = create_bow(data)
+train_data, train_labels = parse("wikisection_dataset_json/wikisection_en_city_train.json")
+#test_data, test_labels = parse("wikisection_dataset_json/wikisection_en_city_test.json")
+dct, bow = create_bow(train_data)
+print("Preprocessing is finished!")
 
 lda_model = LdaModel(
     corpus=bow,
     num_topics=NUM_TOPICS,
     id2word=dct)
-
-
-# word weights for topics
-for idx, topic in lda_model.print_topics(-1):
-    print('Topic: {} \nWords: {}'.format(idx, topic))
+print("Lda is finished!")
 
 """
+document_topics = [lda_model.get_document_topics(
+    bow=doc_bow,
+    minimum_probability=0.0
+) for doc_bow in bow]
+
+clf = svm.LinearSVC()
+clf.fit(document_topics, train_labels)
+print("SVM is finished!")
+
+
 # Topic Coherence
 coherence_model_lda = CoherenceModel(
     model=lda_model,

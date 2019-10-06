@@ -14,21 +14,27 @@
 import json
 import nltk
 from nltk.tokenize import word_tokenize
+from gensim.test.utils import datapath
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer, PorterStemmer
 from string import punctuation
 from gensim.corpora import Dictionary
-from gensim.models import LdaMulticore
+from gensim.models import LdaMulticore, LdaModel
 from gensim.models.coherencemodel import CoherenceModel
+from sklearn.manifold import TSNE
+import numpy as np
+from matplotlib import pyplot as plt
 nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('wordnet')
+
+NUM_TOPICS = 2
 
 
 def parse(files):
     documents = []
     for file in files:
-        with open(file) as json_file:
+        with open(file, encoding="utf8") as json_file:
             data = json.load(json_file)
             for i in data:
                 documents.append(i['text'])
@@ -36,8 +42,7 @@ def parse(files):
 
 
 def preprocess():
-    files = ['wikisection_dataset_json/wikisection_en_city_train.json',
-             'wikisection_dataset_json/wikisection_en_disease_train.json']
+    files = ['wikisection_dataset_json/wikisection_en_city_train.json']
     documents = parse(files)
 
     # tokenize
@@ -66,6 +71,7 @@ def preprocess():
     for data in lemm_data:
         stem_data.append([ps.stem(w) for w in data])
 
+    print('Preprocessing is finished')
     return stem_data
 
 
@@ -78,17 +84,18 @@ def create_bow(data):
 
 data = preprocess()
 dct, bow = create_bow(data)
-lda_model = LdaMulticore(
+
+lda_model = LdaModel(
     corpus=bow,
-    num_topics=55,
-    id2word=dct,
-    passes=5,
-    workers=2)
+    num_topics=NUM_TOPICS,
+    id2word=dct)
+
 
 # word weights for topics
 for idx, topic in lda_model.print_topics(-1):
     print('Topic: {} \nWords: {}'.format(idx, topic))
 
+"""
 # Topic Coherence
 coherence_model_lda = CoherenceModel(
     model=lda_model,
@@ -100,7 +107,7 @@ coherence_model_lda = CoherenceModel(
 coherence = coherence_model_lda.get_coherence()
 print('\nCoherence Score: ', coherence)
 
-# tsne visualization
+
 X = np.zeros((len(bow), NUM_TOPICS))
 for i in range(len(bow)):
     for (k, y) in lda_model[bow[i]]:
@@ -113,10 +120,8 @@ doc_colors = []
 for i in range(X.shape[0]):
     doc_colors.append(colors[topic_num[i]])
 
-tsne_embedding = TSNE(
-    n_components=2,
-    random_state=0,
-    init='pca').fit_transform(X)
+tsne_embedding = TSNE(random_state=0).fit_transform(X)
 
 plt.scatter(tsne_embedding[:, 0], tsne_embedding[:, 1], c=doc_colors)
 plt.show()
+"""

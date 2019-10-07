@@ -22,7 +22,7 @@ from gensim.corpora import Dictionary
 from gensim.models import LdaMulticore, LdaModel
 from gensim.models.coherencemodel import CoherenceModel
 from sklearn.manifold import TSNE
-from sklearn import svm
+from sklearn import svm, metrics
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -89,7 +89,7 @@ def create_bow(data):
 
 
 train_data, train_labels = parse("wikisection_dataset_json/wikisection_en_city_train.json")
-#test_data, test_labels = parse("wikisection_dataset_json/wikisection_en_city_test.json")
+test_data, test_labels = parse("wikisection_dataset_json/wikisection_en_city_test.json")
 dct, bow = create_bow(train_data)
 print("Preprocessing is finished!")
 
@@ -99,29 +99,29 @@ lda_model = LdaModel(
     id2word=dct)
 print("Lda is finished!")
 
-# Topic Coherence
-coherence_model_lda = CoherenceModel(
-    model=lda_model,
-    texts=train_data,
-    corpus=bow,
-    dictionary=dct,
-    coherence='c_v',
-    processes=1)
+document_topics = []
+for doc_bow in bow:
+    ls = []
+    for top, prob in lda_model.get_document_topics(bow=doc_bow, minimum_probability=0.0):
+        ls.append(prob)
+    document_topics.append(ls)
 
-coherence = coherence_model_lda.get_coherence()
-print('\nCoherence Score: ', coherence)
-
-"""
-document_topics = [lda_model.get_document_topics(
-    bow=doc_bow,
-    minimum_probability=0.0
-) for doc_bow in bow]
+t_document_topics = []
+for doc in test_data:
+    doc_bow = dct.doc2bow(doc)
+    ls = []
+    for top, prob in lda_model.get_document_topics(bow=doc_bow, minimum_probability=0.0):
+        ls.append(prob)
+    t_document_topics.append(ls)
 
 clf = svm.LinearSVC()
 clf.fit(document_topics, train_labels)
-print("SVM is finished!")
+
+y_pred = clf.predict(t_document_topics)
+print(metrics.f1_score(test_labels, y_pred))
 
 
+"""
 # Topic Coherence
 coherence_model_lda = CoherenceModel(
     model=lda_model,

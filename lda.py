@@ -118,7 +118,7 @@ clf = svm.LinearSVC()
 clf.fit(document_topics, train_labels)
 
 y_pred = clf.predict(t_document_topics)
-print(metrics.f1_score(test_labels, y_pred))
+print(metrics.accuracy_score(test_labels, y_pred))
 
 
 """

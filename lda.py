@@ -93,7 +93,10 @@ test_data, test_labels = parse("wikisection_dataset_json/wikisection_en_city_tes
 dct, bow = create_bow(train_data)
 print("Preprocessing is finished!")
 
-lda_model = LdaModel(
+histogram = plt.hist(train_labels, normed=True)
+plt.show(histogram)
+
+"""lda_model = LdaModel(
     corpus=bow,
     num_topics=NUM_TOPICS,
     id2word=dct)
@@ -121,7 +124,7 @@ y_pred = clf.predict(t_document_topics)
 print(metrics.accuracy_score(test_labels, y_pred))
 
 
-"""
+
 # Topic Coherence
 coherence_model_lda = CoherenceModel(
     model=lda_model,

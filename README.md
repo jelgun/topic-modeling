@@ -1,3 +1,3 @@
 # Usage
-  - pip install -r requirements.txt 
-  - python lda.py
+  - pip3 install -r requirements.txt 
+  - python3 lda.py

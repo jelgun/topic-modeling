@@ -16,7 +16,7 @@ lemmatizer = WordNetLemmatizer()
 ps = PorterStemmer()
 
 label2id = {}
-label_id = 0
+label_count = 0
 
 
 def parse(file):
@@ -35,9 +35,9 @@ def parse(file):
                 label = section['sectionLabel']
 
                 if label not in label2id:
-                    global label_id
-                    label2id[label] = label_id
-                    label_id += 1
+                    global label_count
+                    label2id[label] = label_count
+                    label_count += 1
 
                 label_id = label2id[label]
 
@@ -102,6 +102,7 @@ with open('en_disease_test.json', 'w') as fout:
 train_data, train_labels, train_doc_lengths, train_label_freq = parse("wikisection_dataset_json/wikisection_en_city_train.json")
 test_data, test_labels, test_doc_lengths, test_label_freq = parse("wikisection_dataset_json/wikisection_en_city_test.json")
 
+print(train_labels)
 # downsample
 
 for key, val in train_label_freq.items():

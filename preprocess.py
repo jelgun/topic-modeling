@@ -116,7 +116,7 @@ test_data, test_labels, test_doc_lengths = shuffle(test_data, test_labels, test_
 
 en_city_train = []
 for i in range(92839):
-    if (train_label_freq[train_labels[i]] != 0):
+    if (train_label_freq[train_labels[i]] > 0):
         data = {}
         data['label_id'] = train_labels[i]
         data['size'] = train_doc_lengths[i]
